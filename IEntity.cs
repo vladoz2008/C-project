@@ -1,10 +1,7 @@
-﻿using System.IO;
-
-namespace LibraryInformationSystem
+﻿namespace StudentGradesSystem
 {
-    
     public interface IEntity
     {
-        void WriteToBinary(BinaryWriter writer);
+        string DisplayName { get; }
     }
 }

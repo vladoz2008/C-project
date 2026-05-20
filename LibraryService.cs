@@ -1,287 +1,260 @@
 ﻿using System;
-using System.IO;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
 
-namespace LibraryInformationSystem
+namespace StudentGradesSystem
 {
-    public class LibraryService : ILibraryService
+    public class StudentService : IStudentService
     {
-        private const string BooksFile = "books.dat";
-        private const string AuthorsFile = "authors.dat";
-        private const string LoansFile = "loans.dat";
+        // Данные по заданию хранятся в списке класса.
+        private static readonly List<Student> Students = new List<Student>();
 
-        public void InitializeDefaultData()
+        public void ShowMenu()
         {
-            if (!File.Exists(AuthorsFile))
+            while (true)
             {
-                using (var bw = new BinaryWriter(File.Open(AuthorsFile, FileMode.Create)))
+                SafeClear();
+                Console.WriteLine("=== УПРАВЛЕНИЕ СТУДЕНТАМИ И ОЦЕНКАМИ ===");
+                Console.WriteLine("1. Добавить нового студента");
+                Console.WriteLine("2. Добавить оценки студенту");
+                Console.WriteLine("3. Вывести среднюю оценку студента");
+                Console.WriteLine("4. Вывести среднюю оценку всех студентов");
+                Console.WriteLine("5. Проверить допустимость оценки");
+                Console.WriteLine("6. Показать всех студентов");
+                Console.WriteLine("0. Выход");
+                Console.Write("Выберите действие: ");
+
+                string? choice = Console.ReadLine()?.Trim();
+                Console.WriteLine();
+
+                switch (choice)
                 {
-                    new Author { Id = 1, FirstName = "Лев", LastName = "Толстой", Country = "Россия" }.WriteToBinary(bw);
-                    new Author { Id = 2, FirstName = "Джордж", LastName = "Оруэлл", Country = "Великобритания" }.WriteToBinary(bw);
+                    case "1":
+                        AddStudent();
+                        break;
+                    case "2":
+                        AddGradesToStudent();
+                        break;
+                    case "3":
+                        ShowStudentAverage();
+                        break;
+                    case "4":
+                        ShowAllStudentsAverage();
+                        break;
+                    case "5":
+                        ValidateGradeFromInput();
+                        break;
+                    case "6":
+                        ShowStudents();
+                        break;
+                    case "0":
+                        return;
+                    default:
+                        Console.WriteLine("Неизвестная команда. Введите число из меню.");
+                        break;
                 }
+
+                Pause();
             }
-            if (!File.Exists(BooksFile))
+        }
+
+        private void AddStudent()
+        {
+            Console.Write("Введите имя студента: ");
+            string? name = Console.ReadLine()?.Trim();
+
+            if (string.IsNullOrWhiteSpace(name))
             {
-                using (var bw = new BinaryWriter(File.Open(BooksFile, FileMode.Create)))
+                Console.WriteLine("Ошибка: имя не может быть пустым.");
+                return;
+            }
+
+            if (FindStudentByName(name) is not null)
+            {
+                Console.WriteLine("Ошибка: студент с таким именем уже существует.");
+                return;
+            }
+
+            Students.Add(new Student(name));
+            Console.WriteLine($"Студент '{name}' добавлен.");
+        }
+
+        private void AddGradesToStudent()
+        {
+            Student? student = PromptStudent();
+            if (student is null)
+            {
+                return;
+            }
+
+            Console.WriteLine("Введите оценки через пробел (например: 5 4 3) или по одной строкой. Пустая строка завершает ввод.");
+
+            while (true)
+            {
+                Console.Write("Оценки: ");
+                string? input = Console.ReadLine();
+
+                if (string.IsNullOrWhiteSpace(input))
                 {
-                    new Book { Id = 101, AuthorId = 1, Title = "Война и мир", ReleaseYear = 1869, Genre = "Роман" }.WriteToBinary(bw);
-                    new Book { Id = 102, AuthorId = 2, Title = "1984", ReleaseYear = 1949, Genre = "Антиутопия" }.WriteToBinary(bw);
+                    break;
                 }
-            }
-            if (!File.Exists(LoansFile))
-            {
-                using (var bw = new BinaryWriter(File.Open(LoansFile, FileMode.Create)))
+
+                string[] parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                foreach (string part in parts)
                 {
-                    new Loan { Id = 1, BookId = 101, ReaderName = "Иванов И.И.", LoanDays = 14 }.WriteToBinary(bw);
+                    if (!int.TryParse(part, NumberStyles.Integer, CultureInfo.InvariantCulture, out int grade))
+                    {
+                        Console.WriteLine($"Предупреждение: '{part}' не является числом.");
+                        continue;
+                    }
+
+                    if (!student.AddGrade(grade))
+                    {
+                        Console.WriteLine($"Предупреждение: оценка {grade} недопустима. Разрешено только от 1 до 5.");
+                        continue;
+                    }
+
+                    Console.WriteLine($"Оценка {grade} добавлена студенту {student.Name}.");
                 }
             }
         }
 
-        public void AddDataMenu()
+        private void ShowStudentAverage()
         {
-            Console.Clear();
-            Console.WriteLine("=== ДОБАВЛЕНИЕ ДАННЫХ ===");
-            Console.WriteLine("1 - Добавить Книгу | 2 - Добавить Автора | 3 - Добавить Выдачу");
-            Console.Write("Выбор: ");
-            string type = Console.ReadLine();
-
-            if (type == "1")
+            Student? student = PromptStudent();
+            if (student is null)
             {
-                Book b = new Book();
-                Console.Write("ID Книги: "); b.Id = int.Parse(Console.ReadLine());
-                Console.Write("ID Автора: "); b.AuthorId = int.Parse(Console.ReadLine());
-                Console.Write("Название: "); b.Title = Console.ReadLine();
-                Console.Write("Год издания: "); b.ReleaseYear = int.Parse(Console.ReadLine());
-                Console.Write("Жанр: "); b.Genre = Console.ReadLine();
-
-                using (var bw = new BinaryWriter(File.Open(BooksFile, FileMode.Append))) b.WriteToBinary(bw);
+                return;
             }
-            else if (type == "2")
+
+            if (student.Grades.Count == 0)
             {
-                Author a = new Author();
-                Console.Write("ID Автора: "); a.Id = int.Parse(Console.ReadLine());
-                Console.Write("Имя: "); a.FirstName = Console.ReadLine();
-                Console.Write("Фамилия: "); a.LastName = Console.ReadLine();
-                Console.Write("Страна: "); a.Country = Console.ReadLine();
-
-                using (var bw = new BinaryWriter(File.Open(AuthorsFile, FileMode.Append))) a.WriteToBinary(bw);
+                Console.WriteLine($"У студента {student.Name} пока нет оценок.");
+                return;
             }
-            else if (type == "3")
-            {
-                Loan l = new Loan();
-                Console.Write("ID Выдачи: "); l.Id = int.Parse(Console.ReadLine());
-                Console.Write("ID Книги: "); l.BookId = int.Parse(Console.ReadLine());
-                Console.Write("ФИО Читателя: "); l.ReaderName = Console.ReadLine();
-                Console.Write("Срок выдачи (дней): "); l.LoanDays = int.Parse(Console.ReadLine());
 
-                using (var bw = new BinaryWriter(File.Open(LoansFile, FileMode.Append))) l.WriteToBinary(bw);
-            }
-            Console.WriteLine("Запись успешно добавлена!");
-            Pause();
+            Console.WriteLine($"Средняя оценка студента {student.Name}: {student.CalculateAverageGrade():F2}");
         }
 
-        public void ViewDataMenu()
+        private void ShowAllStudentsAverage()
         {
-            Console.Clear();
-            Console.WriteLine("=== ПРОСМОТР ДАННЫХ ===");
-            Console.WriteLine("1 - Книги | 2 - Авторы | 3 - Выдачи");
-            Console.Write("Выбор: ");
-            string choice = Console.ReadLine();
+            double average = CalculateAllStudentsAverage();
 
-            if (choice == "1")
+            if (Students.Count == 0)
             {
-                Console.WriteLine($"{"ID",-6} | {"ID Авт.",-8} | {"Название книги",-25} | {"Год",-6} | {"Жанр",-15}");
-                Console.WriteLine(new string('-', 70));
-                using (var br = new BinaryReader(File.Open(BooksFile, FileMode.OpenOrCreate)))
-                {
-                    while (br.BaseStream.Position < br.BaseStream.Length)
-                    {
-                        Book b = Book.ReadFromBinary(br);
-                        Console.WriteLine($"{b.Id,-6} | {b.AuthorId,-8} | {b.Title,-25} | {b.ReleaseYear,-6} | {b.Genre,-15}");
-                    }
-                }
+                Console.WriteLine("Список студентов пуст.");
+                return;
             }
-            else if (choice == "2")
+
+            int gradedStudentsCount = Students.Count(s => s.Grades.Count > 0);
+            if (gradedStudentsCount == 0)
             {
-                Console.WriteLine($"{"ID",-6} | {"Имя",-15} | {"Фамилия",-15} | {"Страна",-15}");
-                Console.WriteLine(new string('-', 60));
-                using (var br = new BinaryReader(File.Open(AuthorsFile, FileMode.OpenOrCreate)))
-                {
-                    while (br.BaseStream.Position < br.BaseStream.Length)
-                    {
-                        Author a = Author.ReadFromBinary(br);
-                        Console.WriteLine($"{a.Id,-6} | {a.FirstName,-15} | {a.LastName,-15} | {a.Country,-15}");
-                    }
-                }
+                Console.WriteLine("У студентов пока нет оценок.");
+                return;
             }
-            else if (choice == "3")
-            {
-                Console.WriteLine($"{"ID",-6} | {"ID Книги",-8} | {"Читатель",-25} | {"Срок (дн)",-10}");
-                Console.WriteLine(new string('-', 60));
-                using (var br = new BinaryReader(File.Open(LoansFile, FileMode.OpenOrCreate)))
-                {
-                    while (br.BaseStream.Position < br.BaseStream.Length)
-                    {
-                        Loan l = Loan.ReadFromBinary(br);
-                        Console.WriteLine($"{l.Id,-6} | {l.BookId,-8} | {l.ReaderName,-25} | {l.LoanDays,-10}");
-                    }
-                }
-            }
-            Pause();
+
+            Console.WriteLine($"Средняя оценка по всем студентам: {average:F2}");
         }
 
-        public void SearchMenu()
+        private void ValidateGradeFromInput()
         {
-            Console.Clear();
-            Console.WriteLine("=== ПОИСК И ФИЛЬТРАЦИЯ ===");
-            Console.WriteLine("1 - Название книги | 2 - Минимальный год | 3 - Страна автора");
-            Console.Write("Выбор: ");
-            string choice = Console.ReadLine();
+            Console.Write("Введите оценку для проверки: ");
+            if (!int.TryParse(Console.ReadLine(), out int grade))
+            {
+                Console.WriteLine("Ошибка: введите целое число.");
+                return;
+            }
 
-            if (choice == "1")
-            {
-                Console.Write("Введите название: ");
-                string query = Console.ReadLine().ToLower();
-                using (var br = new BinaryReader(File.Open(BooksFile, FileMode.OpenOrCreate)))
-                {
-                    while (br.BaseStream.Position < br.BaseStream.Length)
-                    {
-                        Book b = Book.ReadFromBinary(br);
-                        if (b.Title.ToLower().Contains(query))
-                            Console.WriteLine($"Найдено: ID {b.Id} - \"{b.Title}\"");
-                    }
-                }
-            }
-            else if (choice == "2")
-            {
-                Console.Write("Введите год: ");
-                int year = int.Parse(Console.ReadLine());
-                using (var br = new BinaryReader(File.Open(BooksFile, FileMode.OpenOrCreate)))
-                {
-                    while (br.BaseStream.Position < br.BaseStream.Length)
-                    {
-                        Book b = Book.ReadFromBinary(br);
-                        if (b.ReleaseYear >= year)
-                            Console.WriteLine($"ID {b.Id} - \"{b.Title}\" ({b.ReleaseYear})");
-                    }
-                }
-            }
-            else if (choice == "3")
-            {
-                Console.Write("Введите страну: ");
-                string country = Console.ReadLine().ToLower();
-                using (var br = new BinaryReader(File.Open(AuthorsFile, FileMode.OpenOrCreate)))
-                {
-                    while (br.BaseStream.Position < br.BaseStream.Length)
-                    {
-                        Author a = Author.ReadFromBinary(br);
-                        if (a.Country.ToLower().Contains(country))
-                            Console.WriteLine($"Автор: {a.FirstName} {a.LastName} ({a.Country})");
-                    }
-                }
-            }
-            Pause();
+            Console.WriteLine(IsValidGrade(grade)
+                ? "Оценка допустима (1..5)."
+                : "Оценка недопустима. Разрешено только от 1 до 5.");
         }
 
-        public void SummaryMenu()
+        private void ShowStudents()
         {
-            Console.Clear();
-            Console.WriteLine("=== СУММАРНЫЕ ХАРАКТЕРИСТИКИ ===");
-            Console.WriteLine("1 - Общее количество книг | 2 - Средний срок выдачи");
-            Console.Write("Выбор: ");
-            string choice = Console.ReadLine();
+            if (Students.Count == 0)
+            {
+                Console.WriteLine("Студенты еще не добавлены.");
+                return;
+            }
 
-            if (choice == "1")
+            Console.WriteLine("Список студентов:");
+            foreach (Student student in Students)
             {
-                int count = 0;
-                using (var br = new BinaryReader(File.Open(BooksFile, FileMode.OpenOrCreate)))
-                {
-                    while (br.BaseStream.Position < br.BaseStream.Length) { Book.ReadFromBinary(br); count++; }
-                }
-                Console.WriteLine($"Всего книг: {count}");
+                string gradesText = student.Grades.Count == 0 ? "нет оценок" : string.Join(", ", student.Grades);
+                Console.WriteLine($"- {student.Name}: {gradesText}");
             }
-            else if (choice == "2")
-            {
-                int totalDays = 0, count = 0;
-                using (var br = new BinaryReader(File.Open(LoansFile, FileMode.OpenOrCreate)))
-                {
-                    while (br.BaseStream.Position < br.BaseStream.Length)
-                    {
-                        Loan l = Loan.ReadFromBinary(br);
-                        totalDays += l.LoanDays; count++;
-                    }
-                }
-                Console.WriteLine($"Средний срок чтения: {(count > 0 ? (double)totalDays / count : 0):F1} дней.");
-            }
-            Pause();
         }
 
-        public void SortMenu()
+        // Метод класса (static): средняя оценка всех студентов.
+        public static double CalculateAllStudentsAverage()
         {
-            Console.Clear();
-            Console.WriteLine("=== СОРТИРОВКА КНИГ ===");
-            Console.WriteLine("1 - По Году Издания | 2 - По Названию");
-            Console.Write("Выбор: ");
-            string choice = Console.ReadLine();
-
-            var list = new List<Book>();
-            if (!File.Exists(BooksFile)) return;
-
-            using (var br = new BinaryReader(File.Open(BooksFile, FileMode.Open)))
-            {
-                while (br.BaseStream.Position < br.BaseStream.Length) list.Add(Book.ReadFromBinary(br));
-            }
-
-            if (choice == "1") list.Sort((x, y) => x.ReleaseYear.CompareTo(y.ReleaseYear));
-            else if (choice == "2") list.Sort((x, y) => string.Compare(x.Title, y.Title, StringComparison.OrdinalIgnoreCase));
-
-            using (var bw = new BinaryWriter(File.Open(BooksFile, FileMode.Create)))
-            {
-                foreach (var b in list) b.WriteToBinary(bw);
-            }
-            Console.WriteLine("Сортировка завершена!");
-            Pause();
+            List<int> allGrades = Students.SelectMany(s => s.Grades).ToList();
+            return allGrades.Count == 0 ? 0 : allGrades.Average();
         }
 
-        public void DeleteMenu()
+        // Статический метод валидации оценки.
+        public static bool IsValidGrade(int grade)
         {
-            Console.Clear();
-            Console.WriteLine("=== УДАЛЕНИЕ КНИГИ ===");
-            Console.Write("Введите ID книги для удаления: ");
-            if (!int.TryParse(Console.ReadLine(), out int targetId)) return;
-
-            var list = new List<Book>();
-            bool found = false;
-
-            if (File.Exists(BooksFile))
-            {
-                using (var br = new BinaryReader(File.Open(BooksFile, FileMode.Open)))
-                {
-                    while (br.BaseStream.Position < br.BaseStream.Length)
-                    {
-                        Book b = Book.ReadFromBinary(br);
-                        if (b.Id == targetId) found = true;
-                        else list.Add(b);
-                    }
-                }
-            }
-
-            if (found)
-            {
-                using (var bw = new BinaryWriter(File.Open(BooksFile, FileMode.Create)))
-                {
-                    foreach (var b in list) b.WriteToBinary(bw);
-                }
-                Console.WriteLine("Успешно удалено.");
-            }
-            else Console.WriteLine("ID не найден.");
-            Pause();
+            return grade >= 1 && grade <= 5;
         }
 
-        private void Pause()
+        private static Student? FindStudentByName(string name)
         {
-            Console.WriteLine("\nНажмите любую клавишу...");
-            Console.ReadKey();
+            return Students.FirstOrDefault(s => string.Equals(s.Name, name, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static Student? PromptStudent()
+        {
+            if (Students.Count == 0)
+            {
+                Console.WriteLine("Сначала добавьте хотя бы одного студента.");
+                return null;
+            }
+
+            Console.Write("Введите имя студента: ");
+            string? name = Console.ReadLine()?.Trim();
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                Console.WriteLine("Ошибка: имя не может быть пустым.");
+                return null;
+            }
+
+            Student? student = FindStudentByName(name);
+            if (student is null)
+            {
+                Console.WriteLine("Студент не найден.");
+                return null;
+            }
+
+            return student;
+        }
+
+        private static void Pause()
+        {
+            Console.WriteLine("\nНажмите любую клавишу для продолжения...");
+            if (!Console.IsInputRedirected)
+            {
+                Console.ReadKey();
+            }
+        }
+
+        private static void SafeClear()
+        {
+            try
+            {
+                if (!Console.IsOutputRedirected)
+                {
+                    Console.Clear();
+                }
+            }
+            catch (IOException)
+            {
+                // Игнорируем очистку экрана в окружениях без полноценной консоли.
+            }
         }
     }
 }

@@ -1,14 +1,7 @@
-﻿namespace LibraryInformationSystem
+﻿namespace StudentGradesSystem
 {
-    
-    public interface ILibraryService
+    public interface IStudentService
     {
-        void InitializeDefaultData();
-        void AddDataMenu();
-        void ViewDataMenu();
-        void SearchMenu();
-        void SummaryMenu();
-        void SortMenu();
-        void DeleteMenu();
+        void ShowMenu();
     }
 }
