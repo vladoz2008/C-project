@@ -5,6 +5,7 @@ namespace StudentGradesSystem
 {
     internal class Program
     {
+        // Точка входа: настраивает кодировку консоли и запускает сервис библиотеки.
         private static void Main()
         {
             Console.OutputEncoding = new UTF8Encoding(false);

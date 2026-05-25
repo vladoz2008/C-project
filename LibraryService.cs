@@ -21,6 +21,7 @@ namespace StudentGradesSystem
         private readonly List<Reader> readers;
         private readonly List<LibraryCard> cards;
 
+        // Инициализирует директорию хранения и загружает данные из файлов в память.
         public LibraryService()
         {
             Directory.CreateDirectory(DataDir);
@@ -29,6 +30,7 @@ namespace StudentGradesSystem
             cards = LoadList<LibraryCard>(CardsPath);
         }
 
+        // Показывает главное меню и маршрутизирует выбор пользователя по функциям системы.
         public void ShowMenu()
         {
             while (true)
@@ -58,6 +60,7 @@ namespace StudentGradesSystem
             }
         }
 
+        // Добавляет новую книгу после проверки корректности и уникальности кода.
         private void AddBook()
         {
             DrawOperationTitle("Добавление книги");
@@ -83,6 +86,7 @@ namespace StudentGradesSystem
             DrawStatus("SUCCESS", "Книга успешно добавлена.", ConsoleColor.Green);
         }
 
+        // Добавляет нового читателя с валидацией всех полей формы.
         private void AddReader()
         {
             DrawOperationTitle("Добавление читателя");
@@ -107,6 +111,7 @@ namespace StudentGradesSystem
             DrawStatus("SUCCESS", "Читатель успешно добавлен.", ConsoleColor.Green);
         }
 
+        // Оформляет читательский билет, связывая книгу и читателя по их кодам.
         private void AddCard()
         {
             DrawOperationTitle("Выдача читательского билета");
@@ -147,6 +152,7 @@ namespace StudentGradesSystem
             DrawStatus("SUCCESS", "Билет выдан и сохранен.", ConsoleColor.Green);
         }
 
+        // Выводит все сущности проекта в виде таблиц.
         private void ShowTables()
         {
             DrawOperationTitle("Просмотр таблиц");
@@ -155,6 +161,7 @@ namespace StudentGradesSystem
             PrintCards(cards, "Билеты");
         }
 
+        // Выполняет поиск и фильтрацию по доступным критериям.
         private void SearchAndFilter()
         {
             DrawOperationTitle("Поиск и фильтрация");
@@ -194,6 +201,7 @@ namespace StudentGradesSystem
             }
         }
 
+        // Показывает отсортированные выборки данных по выбранному правилу.
         private void SortData()
         {
             DrawOperationTitle("Сортировка");
@@ -220,6 +228,7 @@ namespace StudentGradesSystem
             }
         }
 
+        // Удаляет записи по критериям и связанные данные в билетах.
         private void DeleteData()
         {
             DrawOperationTitle("Удаление данных");
@@ -263,6 +272,7 @@ namespace StudentGradesSystem
             }
         }
 
+        // Считает и отображает суммарные показатели по библиотечной базе.
         private void ShowStats()
         {
             DrawOperationTitle("Суммарные характеристики");
@@ -285,6 +295,7 @@ namespace StudentGradesSystem
             DrawCard("LIBRARY ANALYTICS", lines, ConsoleColor.Cyan);
         }
 
+        // Рисует таблицу книг с заголовком секции.
         private static void PrintBooks(List<Book> list, string title)
         {
             DrawPanelTitle(title);
@@ -307,6 +318,7 @@ namespace StudentGradesSystem
                 new[] { 6, 22, 32, 8, 16 });
         }
 
+        // Рисует таблицу читателей с заголовком секции.
         private static void PrintReaders(List<Reader> list, string title)
         {
             DrawPanelTitle(title);
@@ -329,6 +341,7 @@ namespace StudentGradesSystem
                 new[] { 6, 16, 16, 8, 32 });
         }
 
+        // Рисует таблицу читательских билетов с заголовком секции.
         private static void PrintCards(List<LibraryCard> list, string title)
         {
             DrawPanelTitle(title);
@@ -350,6 +363,7 @@ namespace StudentGradesSystem
                 new[] { 12, 14, 14, 12 });
         }
 
+        // Универсально отрисовывает стилизованную таблицу по колонкам и строкам.
         private static void PrintTable(IReadOnlyList<string> headers, List<string[]> rows, IReadOnlyList<int> widths)
         {
             string top = "┏" + string.Join("┳", widths.Select(w => new string('━', w + 2))) + "┓";
@@ -377,6 +391,7 @@ namespace StudentGradesSystem
             WriteCentered(" " + new string('▀', Math.Max(8, bottom.Length - 2)), ConsoleColor.DarkGray);
         }
 
+        // Формирует главный экран приложения: баннер, рамку и пункты меню.
         private static void DrawMainScreen()
         {
             DrawSplash();
@@ -399,6 +414,7 @@ namespace StudentGradesSystem
             DrawFrameBottom();
         }
 
+        // Очищает экран и выводит заголовок текущей операции.
         private static void DrawOperationTitle(string title)
         {
             SafeClear();
@@ -407,6 +423,7 @@ namespace StudentGradesSystem
             DrawFrameBottom();
         }
 
+        // Показывает компактное меню для подопераций (поиск/сортировка/удаление).
         private static void DrawMiniMenu(IEnumerable<string> items)
         {
             DrawFrameTop();
@@ -419,11 +436,13 @@ namespace StudentGradesSystem
             DrawFrameBottom();
         }
 
+        // Выводит информационную подсказку пользователю.
         private static void DrawHint(string text)
         {
             DrawStatus("HINT", text, ConsoleColor.Magenta);
         }
 
+        // Выводит статусное сообщение (успех/ошибка/подсказка) в едином стиле.
         private static void DrawStatus(string tag, string message, ConsoleColor color)
         {
             string content = $"{tag}: {message}";
@@ -434,6 +453,7 @@ namespace StudentGradesSystem
             WriteCentered(line, ConsoleColor.DarkGray);
         }
 
+        // Рисует карточку с многострочной информацией (используется для статистики).
         private static void DrawCard(string title, IEnumerable<string> lines, ConsoleColor accent)
         {
             int uiWidth = GetUiWidth();
@@ -449,6 +469,7 @@ namespace StudentGradesSystem
             WriteCentered(bottom, accent);
         }
 
+        // Отображает заголовок секции перед таблицей.
         private static void DrawPanelTitle(string title)
         {
             int uiWidth = GetUiWidth();
@@ -458,6 +479,7 @@ namespace StudentGradesSystem
             WriteCentered("╰" + new string('─', uiWidth - 2) + "╯", ConsoleColor.DarkGray);
         }
 
+        // Печатает ASCII-баннер приложения.
         private static void DrawSplash()
         {
             string[] art =
@@ -476,24 +498,28 @@ namespace StudentGradesSystem
             }
         }
 
+        // Рисует верхнюю границу рамки блока.
         private static void DrawFrameTop()
         {
             int uiWidth = GetUiWidth();
             WriteCentered("┏" + new string('━', uiWidth - 2) + "┓", ConsoleColor.DarkBlue);
         }
 
+        // Рисует разделитель внутри рамки блока.
         private static void DrawFrameDivider()
         {
             int uiWidth = GetUiWidth();
             WriteCentered("┣" + new string('━', uiWidth - 2) + "┫", ConsoleColor.DarkBlue);
         }
 
+        // Рисует нижнюю границу рамки блока.
         private static void DrawFrameBottom()
         {
             int uiWidth = GetUiWidth();
             WriteCentered("┗" + new string('━', uiWidth - 2) + "┛", ConsoleColor.DarkBlue);
         }
 
+        // Печатает центрированный текст внутри декоративной рамки.
         private static void WriteFramedCentered(string text, ConsoleColor color)
         {
             int uiWidth = GetUiWidth();
@@ -501,6 +527,7 @@ namespace StudentGradesSystem
             WriteCentered($"┃ {inner} ┃", color);
         }
 
+        // Печатает одну строку внутри карточки статистики.
         private static void WriteCardLine(string text, ConsoleColor color)
         {
             int uiWidth = GetUiWidth();
@@ -508,6 +535,7 @@ namespace StudentGradesSystem
             WriteCentered($"║ {inner} ║", color);
         }
 
+        // Возвращает рабочую ширину UI в зависимости от текущего размера консоли.
         private static int GetUiWidth()
         {
             try
@@ -520,6 +548,7 @@ namespace StudentGradesSystem
             }
         }
 
+        // Выводит строку по центру окна с указанным цветом.
         private static void WriteCentered(string text, ConsoleColor color)
         {
             int width;
@@ -536,6 +565,7 @@ namespace StudentGradesSystem
             WriteLineWithColor(new string(' ', pad) + text, color);
         }
 
+        // Печатает строку заданным цветом и возвращает прежний цвет консоли.
         private static void WriteLineWithColor(string text, ConsoleColor color)
         {
             ConsoleColor prev = Console.ForegroundColor;
@@ -544,6 +574,7 @@ namespace StudentGradesSystem
             Console.ForegroundColor = prev;
         }
 
+        // Приводит текст к заданной ширине: обрезает или дополняет пробелами.
         private static string Fit(string? value, int width)
         {
             string text = (value ?? string.Empty).Replace('\r', ' ').Replace('\n', ' ').Trim();
@@ -555,6 +586,7 @@ namespace StudentGradesSystem
             return width <= 1 ? text[..1] : text[..(width - 1)] + ".";
         }
 
+        // Приводит текст к заданной ширине и дополнительно центрирует его.
         private static string FitCenter(string? value, int width)
         {
             string plain = Fit(value, width).TrimEnd();
@@ -568,6 +600,7 @@ namespace StudentGradesSystem
             return new string(' ', left) + plain + new string(' ', right);
         }
 
+        // Сохраняет все коллекции (книги, читатели, билеты) в файлы.
         private void SaveAll()
         {
             SaveList(BooksPath, books);
@@ -575,6 +608,7 @@ namespace StudentGradesSystem
             SaveList(CardsPath, cards);
         }
 
+        // Загружает список объектов из файла; при ошибках возвращает пустой список.
         private static List<T> LoadList<T>(string path)
         {
             if (!File.Exists(path))
@@ -592,12 +626,14 @@ namespace StudentGradesSystem
             return JsonSerializer.Deserialize<List<T>>(json) ?? new List<T>();
         }
 
+        // Сериализует список в JSON и записывает его в бинарный файл.
         private static void SaveList<T>(string path, List<T> list)
         {
             string json = JsonSerializer.Serialize(list);
             File.WriteAllBytes(path, Encoding.UTF8.GetBytes(json));
         }
 
+        // Считывает и валидирует текст по ограничениям минимальной и максимальной длины.
         private static string ReadText(string prompt, int minLen, int maxLen)
         {
             while (true)
@@ -620,6 +656,7 @@ namespace StudentGradesSystem
             }
         }
 
+        // Считывает целое число и проверяет попадание в допустимый диапазон.
         private static int ReadInt(string prompt, int min = int.MinValue, int max = int.MaxValue)
         {
             while (true)
@@ -642,6 +679,7 @@ namespace StudentGradesSystem
             }
         }
 
+        // Считывает дату в формате дд.мм.гггг с повторным запросом при ошибке.
         private static DateTime ReadDate(string prompt)
         {
             while (true)
@@ -657,6 +695,7 @@ namespace StudentGradesSystem
             }
         }
 
+        // Считывает ответ да/нет в русской и английской форме.
         private static bool ReadYesNo(string prompt)
         {
             while (true)
@@ -677,6 +716,7 @@ namespace StudentGradesSystem
             }
         }
 
+        // Безопасно считывает строку посимвольно (корректно работает с кириллицей).
         private static string ReadLineSafe()
         {
             var sb = new StringBuilder();
@@ -708,6 +748,7 @@ namespace StudentGradesSystem
             }
         }
 
+        // Ставит паузу до нажатия клавиши перед возвратом в меню.
         private static void Pause()
         {
             WriteCentered("Нажмите любую клавишу для продолжения...", ConsoleColor.DarkGray);
@@ -717,6 +758,7 @@ namespace StudentGradesSystem
             }
         }
 
+        // Полностью очищает экран консоли и сбрасывает позицию курсора.
         private static void SafeClear()
         {
             try
