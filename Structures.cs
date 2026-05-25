@@ -1,36 +1,37 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace StudentGradesSystem
 {
-    public class Student : IEntity
+    public struct Book : IEntity
     {
-        public string Name { get; }
-        public string DisplayName => Name;
-        public List<int> Grades { get; } = new List<int>();
+        public int BookCode { get; set; }
+        public string AuthorFirstName { get; set; }
+        public string AuthorLastName { get; set; }
+        public string Title { get; set; }
+        public int PublishYear { get; set; }
+        public string Genre { get; set; }
 
-        public Student(string name)
-        {
-            Name = name;
-        }
+        public string DisplayName => $"[{BookCode}] {Title}";
+    }
 
-        // Метод экземпляра: добавляет оценку только после валидации.
-        public bool AddGrade(int grade)
-        {
-            if (!StudentService.IsValidGrade(grade))
-            {
-                return false;
-            }
+    public struct Reader : IEntity
+    {
+        public int ReaderCode { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Address { get; set; }
+        public int Age { get; set; }
 
-            Grades.Add(grade);
-            return true;
-        }
+        public string DisplayName => $"[{ReaderCode}] {LastName} {FirstName}";
+    }
 
-        // Метод экземпляра: средний балл конкретного студента.
-        public double CalculateAverageGrade()
-        {
-            return Grades.Count == 0 ? 0 : Grades.Average();
-        }
+    public struct LibraryCard : IEntity
+    {
+        public int BookCode { get; set; }
+        public int ReaderCode { get; set; }
+        public DateTime IssueDate { get; set; }
+        public bool Returned { get; set; }
+
+        public string DisplayName => $"Книга {BookCode} -> Читатель {ReaderCode}";
     }
 }

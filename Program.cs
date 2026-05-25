@@ -7,10 +7,11 @@ namespace StudentGradesSystem
     {
         private static void Main()
         {
-            Console.OutputEncoding = Encoding.UTF8;
-            Console.InputEncoding = Encoding.UTF8;
+            Console.OutputEncoding = new UTF8Encoding(false);
+            Console.InputEncoding = new UTF8Encoding(false);
+            Console.Title = "Library Console System";
 
-            IStudentService service = new StudentService();
+            ILibraryService service = new LibraryService();
             service.ShowMenu();
         }
     }
