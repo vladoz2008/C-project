@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace StudentGradesSystem
 {
-    public class LibraryService : ILibraryService
+    internal class LibraryService : ILibraryService
     {
         private const int StageWidth = 92;
 
@@ -22,7 +22,7 @@ namespace StudentGradesSystem
         private readonly List<LibraryCard> cards;
 
         // Инициализирует директорию хранения и загружает данные из файлов в память.
-        public LibraryService()
+        internal LibraryService()
         {
             Directory.CreateDirectory(DataDir);
             books = LoadList<Book>(BooksPath);
@@ -71,15 +71,13 @@ namespace StudentGradesSystem
                 return;
             }
 
-            Book book = new Book
-            {
-                BookCode = code,
-                AuthorFirstName = ReadText("Имя автора: ", 2, 30),
-                AuthorLastName = ReadText("Фамилия автора: ", 2, 30),
-                Title = ReadText("Название книги: ", 2, 80),
-                PublishYear = ReadInt("Год выпуска (1500..2100): ", 1500, 2100),
-                Genre = ReadText("Жанр: ", 2, 30)
-            };
+            Book book = new Book(
+                code,
+                ReadText("Имя автора: ", 2, 30),
+                ReadText("Фамилия автора: ", 2, 30),
+                ReadText("Название книги: ", 2, 80),
+                ReadInt("Год выпуска (1500..2100): ", 1500, 2100),
+                ReadText("Жанр: ", 2, 30));
 
             books.Add(book);
             SaveAll();
@@ -97,14 +95,12 @@ namespace StudentGradesSystem
                 return;
             }
 
-            Reader reader = new Reader
-            {
-                ReaderCode = code,
-                LastName = ReadText("Фамилия: ", 2, 30),
-                FirstName = ReadText("Имя: ", 2, 30),
-                Address = ReadText("Адрес: ", 5, 80),
-                Age = ReadInt("Возраст (10..120): ", 10, 120)
-            };
+            Reader reader = new Reader(
+                code,
+                ReadText("Имя: ", 2, 30),
+                ReadText("Фамилия: ", 2, 30),
+                ReadText("Адрес: ", 5, 80),
+                ReadInt("Возраст (10..120): ", 10, 120));
 
             readers.Add(reader);
             SaveAll();
@@ -139,13 +135,11 @@ namespace StudentGradesSystem
                 return;
             }
 
-            LibraryCard card = new LibraryCard
-            {
-                BookCode = bookCode,
-                ReaderCode = readerCode,
-                IssueDate = ReadDate("Дата выдачи (дд.мм.гггг): "),
-                Returned = ReadYesNo("Возврат? (y/n): ")
-            };
+            LibraryCard card = new LibraryCard(
+                bookCode,
+                readerCode,
+                ReadDate("Дата выдачи (дд.мм.гггг): "),
+                ReadYesNo("Возврат? (y/n): "));
 
             cards.Add(card);
             SaveAll();

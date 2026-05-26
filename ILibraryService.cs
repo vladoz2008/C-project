@@ -1,6 +1,6 @@
 ﻿namespace StudentGradesSystem
 {
-    public interface ILibraryService
+    internal interface ILibraryService
     {
         void ShowMenu();
     }

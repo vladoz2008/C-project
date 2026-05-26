@@ -1,6 +1,6 @@
 ﻿namespace StudentGradesSystem
 {
-    public interface IEntity
+    internal interface IEntity
     {
         string DisplayName { get; }
     }

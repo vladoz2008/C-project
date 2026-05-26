@@ -1,41 +1,72 @@
-﻿using System;
+using System;
+using System.Text.Json.Serialization;
 
 namespace StudentGradesSystem
 {
-    public abstract class Entity : IEntity
+    internal abstract class Entity : IEntity
     {
         public abstract string DisplayName { get; }
     }
 
-    public class Book : Entity
+    internal class Book : Entity
     {
-        public int BookCode { get; set; }
-        public string AuthorFirstName { get; set; } = string.Empty;
-        public string AuthorLastName { get; set; } = string.Empty;
-        public string Title { get; set; } = string.Empty;
-        public int PublishYear { get; set; }
-        public string Genre { get; set; } = string.Empty;
+        [JsonConstructor]
+        public Book(int bookCode, string authorFirstName, string authorLastName, string title, int publishYear, string genre)
+        {
+            BookCode = bookCode;
+            AuthorFirstName = authorFirstName;
+            AuthorLastName = authorLastName;
+            Title = title;
+            PublishYear = publishYear;
+            Genre = genre;
+        }
+
+        public int BookCode { get; }
+        public string AuthorFirstName { get; }
+        public string AuthorLastName { get; }
+        public string Title { get; }
+        public int PublishYear { get; }
+        public string Genre { get; }
 
         public override string DisplayName => $"[{BookCode}] {Title}";
     }
 
-    public class Reader : Entity
+    internal class Reader : Entity
     {
-        public int ReaderCode { get; set; }
-        public string FirstName { get; set; } = string.Empty;
-        public string LastName { get; set; } = string.Empty;
-        public string Address { get; set; } = string.Empty;
-        public int Age { get; set; }
+        [JsonConstructor]
+        public Reader(int readerCode, string firstName, string lastName, string address, int age)
+        {
+            ReaderCode = readerCode;
+            FirstName = firstName;
+            LastName = lastName;
+            Address = address;
+            Age = age;
+        }
+
+        public int ReaderCode { get; }
+        public string FirstName { get; }
+        public string LastName { get; }
+        public string Address { get; }
+        public int Age { get; }
 
         public override string DisplayName => $"[{ReaderCode}] {LastName} {FirstName}";
     }
 
-    public class LibraryCard : Entity
+    internal class LibraryCard : Entity
     {
-        public int BookCode { get; set; }
-        public int ReaderCode { get; set; }
-        public DateTime IssueDate { get; set; }
-        public bool Returned { get; set; }
+        [JsonConstructor]
+        public LibraryCard(int bookCode, int readerCode, DateTime issueDate, bool returned)
+        {
+            BookCode = bookCode;
+            ReaderCode = readerCode;
+            IssueDate = issueDate;
+            Returned = returned;
+        }
+
+        public int BookCode { get; }
+        public int ReaderCode { get; }
+        public DateTime IssueDate { get; }
+        public bool Returned { get; }
 
         public override string DisplayName => $"Книга {BookCode} -> Читатель {ReaderCode}";
     }
